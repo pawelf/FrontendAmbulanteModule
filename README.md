@@ -1,0 +1,1 @@
+This application serves as a model for the German system of educational assistance. It is based on the assumption that modules can be developed to improve the communication process and better involve families in the process—for example, through flyers written in simple language.
