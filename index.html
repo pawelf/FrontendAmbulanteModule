@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambulante Module - Jugendhilfe & Hilfeplaner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer" onclick="switchView('catalog')">
+                        <div class="p-2.5 bg-brand-600 text-white rounded-xl shadow-md">
+                            <i data-lucide="layers" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-lg text-slate-900 tracking-tight block leading-tight">Ambulante Jugendhilfe</span>
+                            <span class="text-xs text-brand-700 font-semibold">Modul-Katalog & Systemischer Hilfeplaner</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Tabs -->
+                    <nav class="hidden md:ml-10 md:flex md:space-x-1 lg:space-x-2" aria-label="Main Navigation">
+                        <button onclick="switchView('catalog')" id="nav-catalog" class="nav-btn active text-brand-600 border-brand-600 inline-flex items-center px-3.5 py-2 border-b-2 text-sm font-semibold gap-2 transition-all">
+                            <i data-lucide="grid" class="w-4 h-4"></i>
+                            Modul-Katalog & Cluster
+                        </button>
+                        <button onclick="switchView('detail')" id="nav-detail" class="nav-btn text-slate-500 hover:text-slate-700 border-transparent inline-flex items-center px-3.5 py-2 border-b-2 text-sm font-medium gap-2 transition-all">
+                            <i data-lucide="git-commit" class="w-4 h-4"></i>
+                            Detail & Abläufe
+                        </button>
+                        <button onclick="switchView('planner')" id="nav-planner" class="nav-btn text-slate-500 hover:text-slate-700 border-transparent inline-flex items-center px-3.5 py-2 border-b-2 text-sm font-medium gap-2 transition-all relative">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                            Hilfeplaner
+                            <span id="planner-count-badge" class="ml-1.5 bg-brand-100 text-brand-800 text-xs px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Right Toolbar Header -->
+                <div class="flex items-center gap-3">
+                    <button onclick="openQuickInfo()" class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg text-sm flex items-center gap-1.5 transition" title="Info & Methodik">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline text-xs font-semibold">Handbuch</span>
+                    </button>
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <button onclick="exportPlannerPDF()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-xs transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Hilfeplan Exportieren</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div class="md:hidden border-t border-slate-200 bg-slate-50 px-2 py-1.5 flex justify-around">
+            <button onclick="switchView('catalog')" id="mob-nav-catalog" class="flex flex-col items-center p-2 text-brand-600 text-xs font-semibold">
+                <i data-lucide="grid" class="w-5 h-5 mb-0.5"></i> Katalog
+            </button>
+            <button onclick="switchView('detail')" id="mob-nav-detail" class="flex flex-col items-center p-2 text-slate-500 text-xs font-medium">
+                <i data-lucide="git-commit" class="w-5 h-5 mb-0.5"></i> Details
+            </button>
+            <button onclick="switchView('planner')" id="mob-nav-planner" class="flex flex-col items-center p-2 text-slate-500 text-xs font-medium relative">
+                <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i> Planer
+                <span id="mob-planner-badge" class="absolute top-1 right-3 bg-brand-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <section id="view-catalog" class="view-section space-y-6">
+            
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-950 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-3xl space-y-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-semibold border border-brand-500/30">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Standardisierter Baukasten nach § 27 ff. SGB VIII
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Ambulanter Hilfeplan-Baukasten</h1>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Wählen Sie aus allen 20 sozialpädagogischen und therapeutischen Modulen der Praxishilfe. Sie können in allen 6 Modulkomplexen/Clustern beliebig viele Bausteine für Ihren individuellen Hilfeplan zusammenstellen.
+                    </p>
+                </div>
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
+            <!-- Controls, Search & Filter Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <!-- Search Input -->
+                <div class="relative w-full md:w-80">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="catalog-search" oninput="applyFilters()" placeholder="Module, Ziele oder Qualifikationen suchen..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <!-- Phase Dropdown Filter -->
+                    <select id="filter-phase" onchange="applyFilters()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Alle 6 Modulkomplexe / Cluster</option>
+                        <option value="0">Phase 0: Beziehungsaufbau & Erstkontakt</option>
+                        <option value="1">I. Therapeutische & Beziehungsfokussierte Module</option>
+                        <option value="2">II. Kompetenzorientierte & Strukturgebende Module</option>
+                        <option value="3">III. Krisenmanagement & Kinderschutz</option>
+                        <option value="4">IV. Netzwerk- & Sozialraumorientierung</option>
+                        <option value="5">V. Beendigung & Nachsorge</option>
+                    </select>
+
+                    <!-- Qual Filter -->
+                    <select id="filter-qual" onchange="applyFilters()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Alle Qualifikationen</option>
+                        <option value="Pädagogische">Pädagogische Ausbildung</option>
+                        <option value="Systemische">Systemische Ausbildung / AFT</option>
+                        <option value="Kinderschutzfachkraft">Kinderschutzfachkraft (§ 8a)</option>
+                    </select>
+
+                    <button onclick="resetFilters()" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-brand-600 border border-slate-200 hover:border-brand-300 rounded-lg bg-slate-50 transition flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <div id="clusters-container" class="space-y-8">
+                <!-- Dynamically generated cluster groups -->
+            </div>
+
+        </section>
+
+        <section id="view-detail" class="view-section hidden space-y-6">
+            
+            <!-- Detail Header & Selector Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <label for="module-selector" class="text-xs font-bold uppercase text-slate-500 tracking-wider whitespace-nowrap">Modul wählen:</label>
+                    <select id="module-selector" onchange="loadModuleDetail(this.value)" class="w-full sm:w-96 px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <!-- Options generated dynamically -->
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="detail-add-planner-btn" onclick="togglePlannerFromDetail()" class="w-full sm:w-auto px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition shadow-xs">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>In den Hilfeplaner übernehmen</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detail Header Card -->
+            <div id="detail-header-card" class="bg-white rounded-2xl p-6 sm:p-8 shadow-xs border border-slate-200 relative overflow-hidden">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Main Detail Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left: Flow / Timeline & Method details -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Vertical Timeline Plan -->
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-xs space-y-6">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="clock" class="w-5 h-5 text-brand-600"></i>
+                                    Detaillierter Verlaufs- & Phasenplan
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">Konkrete methodische Umsetzung und Ablaufschritte aus dem Modul-Katalog</p>
+                            </div>
+                            <span id="detail-duration-badge" class="px-3 py-1 bg-brand-50 text-brand-800 font-bold text-xs rounded-full border border-brand-200 shrink-0">
+                                -- Dauer
+                            </span>
+                        </div>
+
+                        <!-- Step-by-Step Vertical Timeline Container -->
+                        <div id="detail-timeline" class="relative pl-6 border-l-2 border-brand-200 space-y-6">
+                            <!-- Dynamic Timeline Items -->
+                        </div>
+                    </div>
+
+                    <!-- Core Method Box -->
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
+                        <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+                            <i data-lucide="wrench" class="w-5 h-5 text-brand-600"></i>
+                            Methodischer Ablauf & Interventionen
+                        </h3>
+                        <p id="detail-procedure-text" class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+                            --
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right: Meta Information Sidebar -->
+                <div class="space-y-6">
+                    <!-- Qualification Requirement Card -->
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-xs space-y-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <i data-lucide="award" class="w-4 h-4 text-brand-600"></i> Erforderliche Qualifikation
+                        </h4>
+                        <div id="detail-qual-box" class="p-3 bg-brand-50/50 rounded-xl border border-brand-200/60 text-sm font-semibold text-brand-900">
+                            --
+                        </div>
+                    </div>
+
+                    <!-- Target / Goal Card -->
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-xs space-y-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <i data-lucide="target" class="w-4 h-4 text-brand-600"></i> Hauptzielstellung
+                        </h4>
+                        <div id="detail-goal-box" class="text-sm text-slate-700 leading-relaxed font-medium">
+                            --
+                        </div>
+                    </div>
+
+                    <!-- Safety & Context Box -->
+                    <div class="bg-slate-900 rounded-xl p-6 text-white shadow-md space-y-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i> Systemischer Qualitätsstandard
+                        </h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Alle Interventionen orientieren sich an den Standards des SGB VIII. Regelmäßige kollegiale Fallberatung und Kinderschutz-Monitoring (§ 8a) sind obligatorische Bestandteile der Moduldurchführung.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="view-planner" class="view-section hidden space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Hilfeprozess-Planer & Fall-Konfigurator</h2>
+                    <p class="text-sm text-slate-500">Übersicht aller für den Hilfefall ausgewählten Module, gegliedert nach den 6 Modulkomplexen.</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button onclick="clearPlanner()" class="px-3.5 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg font-semibold border border-red-200 transition">
+                        Baukasten leeren
+                    </button>
+                    <button onclick="exportPlannerPDF()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm rounded-lg font-semibold shadow-xs flex items-center gap-2 transition">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> Hilfeplan-PDF erzeugen
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left: Selected Modules grouped by Phase -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="check-square" class="w-4 h-4 text-brand-600"></i>
+                                Ausgewählte Modul-Bausteine (<span id="planner-count-label">0</span>)
+                            </h3>
+                            <span class="text-xs text-slate-400">Nach Komplexen sortiert</span>
+                        </div>
+
+                        <!-- Phased Basket Container -->
+                        <div id="planner-phased-basket" class="space-y-6">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Documentation & Case Form -->
+                    <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="user-check" class="w-4 h-4 text-brand-600"></i>
+                            Falldaten für den Hilfeplanungsbericht
+                        </h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Fall-Chiffre / Aktenzeichen</label>
+                                <input type="text" id="case-id" placeholder="z.B. JU-2026-881" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Zuständiges Jugendamt / RSD</label>
+                                <input type="text" id="case-authority" placeholder="z.B. Jugendamt Halle (Saale)" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Federführende Fachkraft / Träger</label>
+                                <input type="text" id="case-worker" placeholder="Name der Fachkraft" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Geplanter Hilfebeginn</label>
+                                <input type="date" id="case-start" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Individuelle Zielstellung & Besondere Vereinbarungen</label>
+                            <textarea id="case-notes" rows="3" placeholder="Spezifische Vereinbarungen oder ergänzende Notizen für das anstehende Hilfeplangespräch..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Aggregated Summary Card -->
+                <div class="space-y-6">
+                    
+                    <!-- Total Calculation Card -->
+                    <div class="bg-slate-900 rounded-2xl p-6 text-white shadow-xl space-y-6 border border-slate-800">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-brand-400 border-b border-slate-800 pb-3 flex items-center gap-2">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                            Gesamtüberblick Hilfearangement
+                        </h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <span class="text-xs text-slate-400 block mb-1">Ausgewählte Module</span>
+                                <span id="summary-total-modules" class="text-3xl font-black text-white">0</span>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-800">
+                                <span class="text-xs text-slate-400 block mb-1">Erforderliche Team-Qualifikationen</span>
+                                <div id="summary-qual-list" class="flex flex-wrap gap-1.5 mt-2">
+                                    <span class="text-xs text-slate-500 italic">Keine Module ausgewählt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Phase Coverage Preview -->
+                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs space-y-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-brand-600"></i>
+                            Verlaufs-Abdeckung nach Komplexen
+                        </h4>
+                        <div id="phase-coverage-bars" class="space-y-3 text-xs">
+                            <!-- Dynamic Bars Injected -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="info-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
+                    Systemische Methodik & Modulhandbuch
+                </h3>
+                <button onclick="closeQuickInfo()" class="p-1 hover:bg-slate-100 rounded-lg text-slate-500">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
+                <p>
+                    Dieser Modul-Katalog bildet das gesamte Spektrum ambulanter Hilfen zur Erziehung (§§ 27, 30, 31, 35a SGB VIII) ab. 
+                    Die Struktur teilt den Hilfeprozess in 6 Modulkomplexe ein, um Passgenauigkeit, Transparenz und Qualität in der Zusammenarbeit mit Jugendämtern und Familien zu sichern.
+                </p>
+                <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 text-brand-900 text-xs">
+                    <strong>Hinweis zur Baukasten-Nutzung:</strong> In jedem Modulkomplex können Sie ein oder mehrere spezifische Module anwählen, um komplexe Fallkonstellationen (z.B. Kombination aus AFT, Erziehungsberatung und Schulischer Unterstützung) präzise abzubilden.
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 text-right">
+                <button onclick="closeQuickInfo()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable Area for PDF Export -->
+    <div id="print-area" class="hidden print-only p-8 max-w-4xl mx-auto space-y-6">
+        <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold">Hilfeplan-Empfehlung & Modulkonfiguration</h1>
+                <p class="text-sm text-slate-600">Ambulante Hilfen zur Erziehung / Ambulantes Interventionssetting</p>
+            </div>
+            <div class="text-right text-xs text-slate-500">
+                Datum: <span id="print-date">--</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 text-xs border p-4 rounded-lg bg-slate-50">
+            <div><strong>Fall-Chiffre / Aktenzeichen:</strong> <span id="print-case-id">--</span></div>
+            <div><strong>Jugendamt / RSD:</strong> <span id="print-case-auth">--</span></div>
+            <div><strong>Fachkraft / Träger:</strong> <span id="print-case-worker">--</span></div>
+            <div><strong>Geplanter Hilfebeginn:</strong> <span id="print-case-start">--</span></div>
+        </div>
+
+        <div>
+            <h3 class="font-bold text-sm mb-3 border-b pb-1">Ausgewählte Modul-Bausteine nach Komplexen</h3>
+            <div id="print-modules-phased" class="space-y-4">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <div class="text-xs space-y-2 pt-4">
+            <h3 class="font-bold text-sm border-b pb-1">Individuelle Absprachen & Zielstellungen</h3>
+            <p id="print-notes-text" class="italic text-slate-700">Keine gesonderten Anmerkungen hinterlegt.</p>
+        </div>
+
+        <div class="pt-16 grid grid-cols-2 gap-12 text-xs">
+            <div class="border-t border-slate-400 pt-2 text-center">Unterschrift Fachkraft / Träger</div>
+            <div class="border-t border-slate-400 pt-2 text-center">Unterschrift RSD / Jugendamt</div>
+        </div>
+    </div>
+
+    <script>
+        /* 100% COMPLETE DATASET FROM EXCEL "Ambulante Module.xlsx" */
+        const PHASES = [
+            { id: 0, name: "0: Beziehungsaufbau & Erstkontakt", code: "Phase 0", color: "#f59e0b", badgeBg: "bg-amber-100 text-amber-800 border-amber-300" },
+            { id: 1, name: "I. Therapeutische & Beziehungsfokussierte Module", code: "I.", color: "#10b981", badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-300" },
+            { id: 2, name: "II. Kompetenzorientierte & Strukturgebende Module", code: "II.", color: "#3b82f6", badgeBg: "bg-blue-100 text-blue-800 border-blue-300" },
+            { id: 3, name: "III. Krisenmanagement & Kinderschutz", code: "III.", color: "#ef4444", badgeBg: "bg-red-100 text-red-800 border-red-300" },
+            { id: 4, name: "IV. Netzwerk- & Sozialraumorientierung", code: "IV.", color: "#8b5cf6", badgeBg: "bg-purple-100 text-purple-800 border-purple-300" },
+            { id: 5, name: "V. Beendigung & Nachsorge", code: "V.", color: "#64748b", badgeBg: "bg-slate-100 text-slate-800 border-slate-300" }
+        ];
+
+        const MODULES = [
+            // PHASE 0
+            {
+                id: "P0-M1",
+                phaseId: 0,
+                title: "Joining (Gast-Status)",
+                duration: "Erste 2 Wochen",
+                qual: "Pädagogische Grundausbildung",
+                goal: "Reduktion von Schwellenängsten und Aufbau von Vertrauen.",
+                procedure: "Die Fachkraft verhält sich im häuslichen Umfeld zunächst respektvoll wie ein Gast, um die Privatsphäre zu wahren und Abwehr zu mindern.",
+                timeline: [
+                    { period: "Woche 1", title: "Erstkontakt & Gast-Rolle", desc: "Kontaktaufnahme im häuslichen Umfeld. Haltung der Zurückhaltung und Beachtung der familiären Privatsphäre." },
+                    { period: "Woche 2", title: "Alltagsbegleitung", desc: "Unverbindliche Teilnahme an alltäglichen Routinen zur Reduktion von Berührungsängsten." }
+                ]
+            },
+            {
+                id: "P0-M2",
+                phaseId: 0,
+                title: "Ressourcen-Interview",
+                duration: "1–2 Termine",
+                qual: "Systemische Grundkenntnisse",
+                goal: "Aktivierung der Selbsthilfekompetenz von Beginn an.",
+                procedure: "Gezielte Gesprächsführung mit Fokus auf gelingende Alltagsmomente statt auf Defizite; Erfragung von Stärken aller Familienmitglieder.",
+                timeline: [
+                    { period: "Termin 1", title: "Stärken-Erkundung", desc: "Erfragen von Ausnahmesituationen und gelingenden Alltagsmomenten im Familiensystem." },
+                    { period: "Termin 2", title: "Ressourcen-Synthese", desc: "Zusammenfassung der Stärken aller Familienmitglieder und Rückmeldung." }
+                ]
+            },
+            {
+                id: "P0-M3",
+                phaseId: 0,
+                title: "Genogrammarbeit",
+                duration: "2–4 Wochen",
+                qual: "Einführung ins systemische Arbeiten",
+                goal: "Visualisierung familiärer Muster und Bindungen.",
+                procedure: "Gemeinsames Zeichnen des Familienstammbaums zur Klärung von Rollen, Beziehungsdynamiken und transgenerationalen Themen.",
+                timeline: [
+                    { period: "Woche 1", title: "Einstieg & Auftrag", desc: "Anliegen erklären, Grunddaten der Familie und Vorfahren erheben." },
+                    { period: "Woche 2", title: "Familiensystem erfassen", desc: "3 Generationen abbilden, Beziehungsmuster, Belastungen und Ressourcen eintragen." },
+                    { period: "Woche 3", title: "Zusammenhänge auswerten", desc: "Transgenerationale Muster, Belastungen und Schutzfaktoren gemeinsam analysieren." },
+                    { period: "Woche 4", title: "Abschluss & Nutzung", desc: "Vervollständigung des Genograms und Einbindung in die weitere Hilfeplanung." }
+                ]
+            },
+            {
+                id: "P0-M4",
+                phaseId: 0,
+                title: "Interaktionsbeobachtung",
+                duration: "2–4 Wochen",
+                qual: "Pädagogische Ausbildung",
+                goal: "Diagnose von Beziehungsdynamiken im natürlichen Umfeld.",
+                procedure: "Begleitung alltäglicher Situationen (z. B. gemeinsames Essen oder Spielzeit), um Kommunikationsformen 'live' zu erleben.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Beobachtung Alltagsroutinen", desc: "Teilnahme an Schlüsselmomenten wie gemeinsamen Mahlzeiten oder Hausaufgaben." },
+                    { period: "Woche 3-4", title: "Reflexion & Feedback", desc: "Wertfreie Rückmeldung beobachteter Kommunikationsmuster an die Eltern." }
+                ]
+            },
+            {
+                id: "P0-M5",
+                phaseId: 0,
+                title: "Wunderfrage (Zielklärung)",
+                duration: "1–2 Termine",
+                qual: "Coachingkenntnisse",
+                goal: "Entwicklung einer positiven Zukunftsvision.",
+                procedure: "Systemische Fragetechnik, um konkrete, attraktive Ziele und erwünschte Veränderungen aus Sicht der Familie zu definieren.",
+                timeline: [
+                    { period: "Termin 1", title: "Durchführung Wunderfrage", desc: "Gedankliches Überspringen der Probleme hin zu einer lösungsorientierten Zukunft." },
+                    { period: "Termin 2", title: "Ziel-Konkretisierung", desc: "Ableitung konkreter, beobachtbarer Schritte für den Hilfeplan." }
+                ]
+            },
+
+            // PHASE 1
+            {
+                id: "P1-M1",
+                phaseId: 1,
+                title: "AFT (Aufsuchende Familientherapie)",
+                duration: "6–12 Monate (wöchentlich 1–2 Std.)",
+                qual: "Systemische Ausbildung / Ausbildung AFT",
+                goal: "Stabilisierung familiärer Beziehungen und Förderung der Selbsthilfekompetenz (Vermeidung Fremdunterbringung).",
+                procedure: "Hausbesuche mit systemischer Gesprächsführung, Aufdeckung & Umwandlung dysfunktionaler Muster, Reflexion familiärer Dynamiken.",
+                timeline: [
+                    { period: "Monat 1-2", title: "Diagnostische Phase & Hypothesen", desc: "Musteranalyse, Erst-Hypothesenbildung, Beziehungsaufbau im Therapiesetting." },
+                    { period: "Monat 3-8", title: "Therapeutische Hauptphase", desc: "Intensive Interventionen, Umwandlung dysfunktionaler Interaktionen, Zirkuläre Fragetechniken." },
+                    { period: "Monat 9-12", title: "Konsolidierung & Ausstieg", desc: "Erprobung neuer Verhaltensweisen, Absicherung von Lernerfolgen im Alltag." }
+                ]
+            },
+            {
+                id: "P1-M2",
+                phaseId: 1,
+                title: "Bindungsförderung",
+                duration: "8–12 Wochen",
+                qual: "Kenntnisse in Bindungstheorie, ggf. Marte Meo/SAFE",
+                goal: "Verbesserung der Eltern-Kind-Beziehung.",
+                procedure: "Beobachtung von Interaktionen, Rückmeldung, Entwicklung bindungsfördernder Verhaltensweisen, ggf. Videofeedback.",
+                timeline: [
+                    { period: "Woche 1-3", title: "Feinfühligkeits-Analyse", desc: "Videoaufnahmen oder Beobachtungen von Wickel-, Spiel- oder Füttersituationen." },
+                    { period: "Woche 4-8", title: "Videofeedback & Coaching", desc: "Gemeinsames Anschauen gelungener Momente zur Stärkung der elterlichen Wahrnehmung." },
+                    { period: "Woche 9-12", title: "Festigung", desc: "Integration bindungsstärkender Signale in den Tagesablauf." }
+                ]
+            },
+            {
+                id: "P1-M3",
+                phaseId: 1,
+                title: "Elterncoaching",
+                duration: "6–10 Wochen",
+                qual: "Pädagogische/psychologische Ausbildung, Coachingkenntnisse",
+                goal: "Stärkung der elterlichen Handlungssicherheit.",
+                procedure: "Einzelgespräche zur Reflexion von Erziehungssituationen, Entwicklung alternativer Erziehungsstrategien.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Erzieherische Bestandsaufnahme", desc: "Analyse konkreter Erziehungskonflikte und bisheriger Reaktionen." },
+                    { period: "Woche 3-7", title: "Strategie-Entwicklung", desc: "Erarbeitung von Deeskalationsansätzen und elterlicher Präsenz." },
+                    { period: "Woche 8-10", title: "Transferkontrolle", desc: "Reflexion der Umsetzung im täglichen Erziehungsalltag." }
+                ]
+            },
+            {
+                id: "P1-M4",
+                phaseId: 1,
+                title: "Systemisches Interaktions-Training (SIT)",
+                duration: "3 - 6 Monate",
+                qual: "Systemische Ausbildung",
+                goal: "Stärkung der elterlichen Handlungssicherheit.",
+                procedure: "Analyse von auffälligem kindlichen Verhalten, Einüben von neuen Reaktionsweisen.",
+                timeline: [
+                    { period: "Monat 1-2", title: "Verhaltensanalyse", desc: "Systemische Analyse der Auslöser und Aufrechterhaltungsfaktoren auffälligen Verhaltens." },
+                    { period: "Monat 3-4", title: "Interaktionstraining", desc: "Praktisches Einüben neuer Reaktionsmuster vor Ort in der Familie." },
+                    { period: "Monat 5-6", title: "Stabilisierung", desc: "Transferkontrolle und Festigung der elterlichen Handlungsalternativen." }
+                ]
+            },
+            {
+                id: "P1-M5",
+                phaseId: 1,
+                title: "Biografiearbeit",
+                duration: "3–6 Monate",
+                qual: "Zusatzausbildung Biografiearbeit oder Traumapädagogik",
+                goal: "Integration von Lebenserfahrungen (z. B. Fremdplatzierung) in das Selbstbild des Kindes.",
+                procedure: "Erstellung eines Lebensbuches, Klärung der Herkunftsgeschichte, Arbeit mit Genogrammen zur Identitätsstärkung.",
+                timeline: [
+                    { period: "Monat 1", title: "Spurensuche", desc: "Sammeln von Fotos, Dokumenten und Erinnerungsstücken aus der Vergangenheit." },
+                    { period: "Monat 2-4", title: "Lebensbuch-Gestaltung", desc: "Aufarbeitung wichtiger Lebensstationen und Klärung von Beziehungsabbrüchen." },
+                    { period: "Monat 5-6", title: "Identitätsstärkung", desc: "Würdigung des eigenen Lebenswegs und positiver Blick in die Zukunft." }
+                ]
+            },
+
+            // PHASE 2
+            {
+                id: "P2-M1",
+                phaseId: 2,
+                title: "Tagesstruktur mit Kindern",
+                duration: "4–12 Wochen",
+                qual: "Pädagogische Ausbildung",
+                goal: "Aufbau von Alltagskompetenz und sozialen Fähigkeiten.",
+                procedure: "Gemeinsame Tagesplanung, Etablierung fester Routinen, Förderung von Selbstständigkeit.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Ist-Analyse des Tages", desc: "Beobachtung der aktuellen Abläufe von Aufstehen bis Zu-Bett-Gehen." },
+                    { period: "Woche 3-8", title: "Etablierung von Wochenplänen", desc: "Einführung visueller Tagespläne und festen Zeiten für Aufgaben und Freizeit." },
+                    { period: "Woche 9-12", title: "Routinisierung", desc: "Festigung der Tagesstrukturen ohne direkte Steuerung durch die Fachkraft." }
+                ]
+            },
+            {
+                id: "P2-M2",
+                phaseId: 2,
+                title: "Haushalt + Familie (Kursangebot)",
+                duration: "6 Wochen",
+                qual: "Pädagogische Ausbildung",
+                goal: "Aufbau von Alltagskompetenzen.",
+                procedure: "Erstellung von Wochenplänen für die Termine der Familie inkl. gesunder Ernährung.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Haushalts-Check", desc: "Bestandsaufnahme von Vorratshaltung, Einkaufsverhalten und Haushaltsführung." },
+                    { period: "Woche 3-4", title: "Ernährung & Einkauf", desc: "Gemeinsame Erstellung gesunder Speisepläne und begleiteten Einkäufen." },
+                    { period: "Woche 5-6", title: "Termin-Organisation", desc: "Einführung eines zentralen Familien-Wochenkalenders." }
+                ]
+            },
+            {
+                id: "P2-M3",
+                phaseId: 2,
+                title: "Schulische Unterstützung",
+                duration: "6–12 Wochen",
+                qual: "Erfahrung in Lernförderung",
+                goal: "Förderung schulischer Teilhabe.",
+                procedure: "Lernunterstützung, Organisation von Arbeitsmaterialien, Begleitung von Elterngesprächen in der Schule.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Schulische Standortbestimmung", desc: "Gespräche mit Lehrkräften, Sichten der Unterlagen und Lernstände." },
+                    { period: "Woche 3-9", title: "Lernstruktur-Aufbau", desc: "Einrichtung eines ruhigen Arbeitsplatzes und Begleitung bei Hausaufgaben." },
+                    { period: "Woche 10-12", title: "Selbstständiges Lernen", desc: "Übergabe der Lernverantwortung an Kind und Eltern." }
+                ]
+            },
+            {
+                id: "P2-M4",
+                phaseId: 2,
+                title: "Medienkompetenz",
+                duration: "2–4 Monate",
+                qual: "Pädagogische Ausbildung + Zusatzqualifikation Medienpädagogik",
+                goal: "Förderung eines gesunden Umgangs mit digitalen Medien und Prävention von Mediensucht.",
+                procedure: "Erarbeitung von Mediennutzungsverträgen, Aufklärung über Gefahren, Einführung medienfreier Zeiten.",
+                timeline: [
+                    { period: "Monat 1", title: "Mediennutzungs-Analyse", desc: "Erfassung der Nutzungszeiten und konsumierten Inhalte aller Familienmitglieder." },
+                    { period: "Monat 2-3", title: "Mediennutzungsvertrag", desc: "Aushandeln verbindlicher Regeln und medienfreier Familienzeiten." },
+                    { period: "Monat 4", title: "Reflexion & Suchtprävention", desc: "Überprüfung der Einhaltung und Aufklärung über Risiken im Netz." }
+                ]
+            },
+            {
+                id: "P2-M5",
+                phaseId: 2,
+                title: "Easy Living (Kursangebot)",
+                duration: "2 Monate",
+                qual: "Pädagogische Ausbildung",
+                goal: "Junge Menschen haben alle Informationen, die sie in der Volljährigkeit benötigen.",
+                procedure: "Erarbeitung von Basiswissen zur eigenständigen Lebensführung (Mietvertrag, Bafög, BAB, ALG II, Wohngeld, Lebensführung).",
+                timeline: [
+                    { period: "Monat 1", title: "Rechte & Finanzen", desc: "Erklärung von Sozialleistungen (BAB, BAföG, Wohngeld) und Mietrecht." },
+                    { period: "Monat 2", title: "Praktische Lebensführung", desc: "Behördengänge trainieren, Verträge verstehen und Versicherungen prüfen." }
+                ]
+            },
+            {
+                id: "P2-M6",
+                phaseId: 2,
+                title: "Fit mit Finanzen",
+                duration: "8–12 Wochen",
+                qual: "Pädagogische Ausbildung mit Erfahrung in Budgetberatung",
+                goal: "Sicherung der materiellen Existenz der Familie durch Haushalts- und Budgetplanung.",
+                procedure: "Erstellung eines Haushaltsplans, Entschuldungshilfe, gemeinsames Einkaufs- und Kochtraining.",
+                timeline: [
+                    { period: "Woche 1-3", title: "Haushaltsbuch & Einnahmen", desc: "Vollständige Erfassung aller Einnahmen, Ausgaben und Schulden." },
+                    { period: "Woche 4-8", title: "Budgetierungs-Training", desc: "Einteilung von wöchentlichen Budgets und Entschuldungsschritte." },
+                    { period: "Woche 9-12", title: "Konsolidierung", desc: "Selbstständige Führung der Finanzen unter gelegentlicher Überprüfung." }
+                ]
+            },
+
+            // PHASE 3
+            {
+                id: "P3-M1",
+                phaseId: 3,
+                title: "SafeCare",
+                duration: "6 Wochen (1 Termin/Woche à 3 Std. + 1 Hausbesuch)",
+                qual: "Sozialpädagogische Ausbildung, Case Management",
+                goal: "Stärkung elterlicher Erziehungskompetenz, Sicherung des Kindeswohls, Frühintervention.",
+                procedure: "Erhebung der Lebenslage, Einschätzung mittels Kinderschutzbogen, Interaktionsbeobachtungen.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Lebenslagenerhebung", desc: "Einschätzung des Haushalts, der Hygiene und der physischen Sicherheit." },
+                    { period: "Woche 3-4", title: "Eltern-Kind-Interaktion", desc: "Training der gesundheitlichen Fürsorge und strukturierten Erziehung." },
+                    { period: "Woche 5-6", title: "Abschlussevaluation", desc: "Abschließende Risikobewertung mittels Kinderschutzbogen." }
+                ]
+            },
+            {
+                id: "P3-M2",
+                phaseId: 3,
+                title: "Clearing",
+                duration: "4 bis 12 Wochen",
+                qual: "Multidisziplinäres Team: Sozialpädagogen, Psychologen (InsoFa)",
+                goal: "Feststellung einer Kindeswohlgefährdung (§8a SGB VIII) und Erarbeitung einer belastbaren Hilfeperspektive.",
+                procedure: "1. Auftragsklärung 2. Informationssammlung 3. Risikoanalyse 4. Abschlussempfehlung (Hausbesuche, Genogramm, Interaktionsbeobachtung).",
+                timeline: [
+                    { period: "Woche 1-2", title: "Auftragsklärung & Sicherheit", desc: "Klärung des Schutzauftrags mit dem Jugendamt und Erstkontakte." },
+                    { period: "Woche 3-6", title: "Informationssammlung & Analyse", desc: "Hausbesuche, Risikoanalyse und Fachgespräche mit Netzwerkpartnern." },
+                    { period: "Woche 7-12", title: "Abschlussempfehlung", desc: "Erstellung der fundierten Empfehlung zur Hilfeperspektive oder Rückkehr." }
+                ]
+            },
+            {
+                id: "P3-M3",
+                phaseId: 3,
+                title: "Krisenintervention",
+                duration: "2–4 Wochen",
+                qual: "Erfahrung in Krisenarbeit",
+                goal: "Stabilisierung und Vermeidung von Eskalation.",
+                procedure: "Kurzfristige Verfügbarkeit, Begleitung akuter Situationen, Wiederherstellung von Sicherheit im System.",
+                timeline: [
+                    { period: "Woche 1", title: "Sofort-Stabilisierung", desc: "Enge Präsenz im Familiensystem, Deeskalation und Notfallabsprachen." },
+                    { period: "Woche 2-4", title: "Nachbereitung & Überleitung", desc: "Auswertung der Krise und Überleitung in ruhigere Hilfestrukturen." }
+                ]
+            },
+            {
+                id: "P3-M4",
+                phaseId: 3,
+                title: "Rückführungsmanagement",
+                duration: "6–9 Monate",
+                qual: "Sozialpädagogische Ausbildung, Kenntnisse Kinderschutz",
+                goal: "Begleitung und Absicherung der Rückführung eines Kindes aus stationärer Unterbringung.",
+                procedure: "Definition klarer Rückführungsschritte, Ressourcenaktivierung und engmaschige Nachbetreuung.",
+                timeline: [
+                    { period: "Monat 1-2", title: "Anbahnung & Kontakte", desc: "Schrittweise Ausweitung der Besuchs- und Übernachtungskontakte." },
+                    { period: "Monat 3-5", title: "Rückkehr in den Haushalt", desc: "Vollständige Rückkehr mit enger Alltagsbegleitung der Eltern." },
+                    { period: "Monat 6-9", title: "Stabilisierungsphase", desc: "Ausschleichende Begleitung zur Absicherung des Erfolgs." }
+                ]
+            },
+
+            // PHASE 4
+            {
+                id: "P4-M1",
+                phaseId: 4,
+                title: "Familienrat",
+                duration: "1–2 Monate",
+                qual: "Schulung in Familienratmoderation",
+                goal: "Aktivierung des sozialen Netzwerks zur Lösungsfindung.",
+                procedure: "Vorbereitung mit Familie und Netzwerk, Durchführung eines strukturierten Treffens (Familienkonferenz).",
+                timeline: [
+                    { period: "Woche 1-3", title: "Vorbereitung & Einladungen", desc: "Identifizierung aller wichtigen Verwandten, Freunde und Nachbarn." },
+                    { period: "Woche 4-6", title: "Durchführung Familienrat", desc: "Eigenständige Erarbeitung eines Lösungsplans durch das Netzwerk ohne Fachkräfte." },
+                    { period: "Woche 7-8", title: "Umsetzungs-Check", desc: "Überprüfung des verabredeten Plans mit der Familie." }
+                ]
+            },
+            {
+                id: "P4-M2",
+                phaseId: 4,
+                title: "Ressourcenaktivierung",
+                duration: "4–8 Wochen",
+                qual: "Sozialpädagogische Ausbildung, Empowermentkenntnisse",
+                goal: "Nutzung persönlicher und sozialer Ressourcen.",
+                procedure: "Erarbeitung von Stärken und Unterstützungsquellen, Planung konkreter Schritte zur Aktivierung des Umfelds.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Netzwerkanalyse", desc: "Erstellen einer Netzwerkkarte bezüglich Verwandten, Nachbarn und Vereinen." },
+                    { period: "Woche 3-8", title: "Konkrete Kontaktaufnahme", desc: "Begleitung bei der Reaktivierung von Hilfequellen im Umfeld." }
+                ]
+            },
+
+            // PHASE 5
+            {
+                id: "P5-M1",
+                phaseId: 5,
+                title: "Abschlussdiagnostik & Zielerreichungsanalyse",
+                duration: "4 Wochen",
+                qual: "Sozialpädagogische Ausbildung, Empowermentkenntnisse",
+                goal: "Systematische Auswertung aller Ziele, Einschätzung auf Nachhaltigkeit.",
+                procedure: "Reflexion des Hilfeverlaufs, Klärung offener Themen und Gegenüberstellung von Ist- und Soll-Zustand.",
+                timeline: [
+                    { period: "Woche 1-2", title: "Soll-Ist-Vergleich", desc: "Gemeinsames Durchgehen aller Hilfeplanziele mit der Familie." },
+                    { period: "Woche 3-4", title: "Abschlussbericht & ASD-Gespräch", desc: "Erstellung des Auswertungsberichts und Abschlussgespräch im Jugendamt." }
+                ]
+            },
+            {
+                id: "P5-M2",
+                phaseId: 5,
+                title: "Verselbstständigung (Care Leaver)",
+                duration: "6–12 Monate",
+                qual: "Sozialpädagogische Ausbildung",
+                goal: "Vorbereitung auf ein eigenständiges Leben nach der Jugendhilfe.",
+                procedure: "Training lebenspraktischer Fertigkeiten, Hilfe bei Wohnraumsuche, Behördenbegleitung.",
+                timeline: [
+                    { period: "Monat 1-3", title: "Wohnraum & Finanzen", desc: "Unterstützung bei der Wohnungssuche, Mietverträgen und Erstausstattung." },
+                    { period: "Monat 4-8", title: "Alltagsbewältigung", desc: "Eigenständiges Führen des Haushalts mit punktueller Begleitung." },
+                    { period: "Monat 9-12", title: "Nachbetreuung & Ablösung", desc: "Letzte Beratungstermine und Beendigung der offiziellen Hilfe." }
+                ]
+            }
+        ];
+
+        // Global State
+        let plannerBasket = []; // Selected Module IDs
+        let currentDetailId = MODULES[0].id;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderClusterView();
+            populateDetailSelector();
+            loadModuleDetail(currentDetailId);
+            updatePlannerUI();
+            lucide.createIcons();
+        });
+
+        // VIEW SWITCHING
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-600', 'border-brand-600', 'font-semibold');
+                btn.classList.add('text-slate-500', 'border-transparent', 'font-medium');
+            });
+            
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('text-brand-600', 'border-brand-600', 'font-semibold');
+                activeBtn.classList.remove('text-slate-500', 'border-transparent');
+            }
+
+            document.querySelectorAll('[id^="mob-nav-"]').forEach(btn => btn.classList.replace('text-brand-600', 'text-slate-500'));
+            const activeMob = document.getElementById(`mob-nav-${viewName}`);
+            if (activeMob) activeMob.classList.replace('text-slate-500', 'text-brand-600');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // VIEW 1: RENDER CLUSTERS WITH MULTI-SELECT CHECKBOXES
+        function renderClusterView(filterText = '', phaseFilter = 'all', qualFilter = 'all') {
+            const container = document.getElementById('clusters-container');
+            
+            let html = '';
+
+            PHASES.forEach(phase => {
+                if (phaseFilter !== 'all' && phase.id != phaseFilter) return;
+
+                // Filter modules in this phase
+                const phaseModules = MODULES.filter(m => {
+                    if (m.phaseId !== phase.id) return false;
+                    
+                    const matchText = filterText === '' || 
+                        m.title.toLowerCase().includes(filterText) || 
+                        m.goal.toLowerCase().includes(filterText) ||
+                        m.procedure.toLowerCase().includes(filterText);
+                    
+                    const matchQual = qualFilter === 'all' || m.qual.includes(qualFilter);
+
+                    return matchText && matchQual;
+                });
+
+                if (phaseModules.length === 0 && (filterText !== '' || qualFilter !== 'all')) return;
+
+                const selectedInPhaseCount = phaseModules.filter(m => plannerBasket.includes(m.id)).length;
+
+                html += `
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                        <!-- Cluster Header -->
+                        <div class="p-5 sm:p-6 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-8 rounded-full" style="background-color: ${phase.color}"></div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-900">${phase.name}</h2>
+                                    <span class="text-xs text-slate-500 font-medium">${phaseModules.length} Module verfügbar in diesem Cluster</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs px-3 py-1 rounded-full font-bold border ${selectedInPhaseCount > 0 ? 'bg-brand-50 text-brand-800 border-brand-300' : 'bg-slate-100 text-slate-600 border-slate-200'}">
+                                    ${selectedInPhaseCount} von ${phaseModules.length} ausgewählt
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Modules Grid / Checkbox Cards -->
+                        <div class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            ${phaseModules.map(m => {
+                                const isChecked = plannerBasket.includes(m.id);
+                                return `
+                                    <div class="p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between gap-3 relative ${isChecked ? 'bg-brand-50/40 border-brand-500 shadow-xs ring-1 ring-brand-500' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'}">
+                                        
+                                        <div>
+                                            <div class="flex items-start justify-between gap-2 mb-2">
+                                                <label class="flex items-center gap-2.5 cursor-pointer group">
+                                                    <input type="checkbox" 
+                                                        onchange="togglePlannerItem('${m.id}')" 
+                                                        ${isChecked ? 'checked' : ''} 
+                                                        class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer">
+                                                    <span class="font-bold text-slate-900 text-sm group-hover:text-brand-600 transition">${m.title}</span>
+                                                </label>
+                                                <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">${m.id}</span>
+                                            </div>
+
+                                            <p class="text-xs text-slate-600 leading-relaxed line-clamp-2 mb-3">
+                                                ${m.goal}
+                                            </p>
+
+                                            <div class="space-y-1 text-[11px] text-slate-500">
+                                                <div class="flex items-center gap-1.5">
+                                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+                                                    <span class="font-medium text-slate-700">${m.duration}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <i data-lucide="award" class="w-3.5 h-3.5 text-slate-400"></i>
+                                                    <span class="truncate">${m.qual}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-2 border-t border-slate-100/80 flex items-center justify-between">
+                                            <button onclick="openDetailView('${m.id}')" class="text-xs font-semibold text-brand-600 hover:text-brand-800 inline-flex items-center gap-1">
+                                                Ablauf & Details <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                                            </button>
+
+                                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${isChecked ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'}">
+                                                ${isChecked ? 'Ausgewählt' : 'Nicht aktiv'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (html === '') {
+                html = `
+                    <div class="py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
+                        <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+                        <p class="font-medium">Keine Module für diese Filterkriterien gefunden.</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('catalog-search').value.toLowerCase();
+            const phaseVal = document.getElementById('filter-phase').value;
+            const qualVal = document.getElementById('filter-qual').value;
+            renderClusterView(searchVal, phaseVal, qualVal);
+        }
+
+        function resetFilters() {
+            document.getElementById('catalog-search').value = '';
+            document.getElementById('filter-phase').value = 'all';
+            document.getElementById('filter-qual').value = 'all';
+            renderClusterView();
+        }
+
+        // VIEW 2: DETAIL VIEW
+        function populateDetailSelector() {
+            const selector = document.getElementById('module-selector');
+            selector.innerHTML = MODULES.map(m => `
+                <option value="${m.id}">${m.id}: ${m.title}</option>
+            `).join('');
+        }
+
+        function openDetailView(moduleId) {
+            document.getElementById('module-selector').value = moduleId;
+            loadModuleDetail(moduleId);
+            switchView('detail');
+        }
+
+        function loadModuleDetail(moduleId) {
+            currentDetailId = moduleId;
+            const m = MODULES.find(item => item.id === moduleId);
+            if (!m) return;
+
+            const phase = PHASES.find(p => p.id === m.phaseId);
+            const isInPlanner = plannerBasket.includes(m.id);
+
+            // Header Card
+            const headerCard = document.getElementById('detail-header-card');
+            headerCard.innerHTML = `
+                <div class="flex flex-wrap items-center gap-3 mb-3">
+                    <span class="text-xs font-bold px-3 py-1 rounded-full border ${phase.badgeBg}">
+                        ${phase.name}
+                    </span>
+                    <span class="text-xs font-semibold text-slate-400">Modul-ID: ${m.id}</span>
+                </div>
+
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">${m.title}</h1>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed max-w-4xl">${m.procedure}</p>
+            `;
+
+            // Action Button
+            const addBtn = document.getElementById('detail-add-planner-btn');
+            if (isInPlanner) {
+                addBtn.className = "w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition shadow-xs";
+                addBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>Im Hilfeplaner enthalten</span>`;
+            } else {
+                addBtn.className = "w-full sm:w-auto px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition shadow-xs";
+                addBtn.innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4"></i><span>In den Hilfeplaner übernehmen</span>`;
+            }
+
+            document.getElementById('detail-duration-badge').innerText = m.duration;
+            document.getElementById('detail-qual-box').innerText = m.qual;
+            document.getElementById('detail-goal-box').innerText = m.goal;
+            document.getElementById('detail-procedure-text').innerText = m.procedure;
+
+            // Timeline Steps
+            const timelineContainer = document.getElementById('detail-timeline');
+            timelineContainer.innerHTML = m.timeline.map((t) => `
+                <div class="relative">
+                    <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-brand-600 border-2 border-white ring-4 ring-brand-50"></div>
+                    <div>
+                        <span class="text-xs font-bold text-brand-700 uppercase tracking-wider block mb-0.5">${t.period}</span>
+                        <h4 class="text-sm font-bold text-slate-900">${t.title}</h4>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">${t.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function togglePlannerFromDetail() {
+            togglePlannerItem(currentDetailId);
+            loadModuleDetail(currentDetailId);
+        }
+
+        // PLANNER BASKET MANAGMENT
+        function togglePlannerItem(moduleId) {
+            const idx = plannerBasket.indexOf(moduleId);
+            if (idx > -1) {
+                plannerBasket.splice(idx, 1);
+            } else {
+                plannerBasket.push(moduleId);
+            }
+            updatePlannerUI();
+            renderClusterView(
+                document.getElementById('catalog-search').value.toLowerCase(),
+                document.getElementById('filter-phase').value,
+                document.getElementById('filter-qual').value
+            );
+        }
+
+        function clearPlanner() {
+            if (plannerBasket.length === 0) return;
+            plannerBasket = [];
+            updatePlannerUI();
+            renderClusterView();
+        }
+
+        function updatePlannerUI() {
+            const count = plannerBasket.length;
+            
+            // Badges
+            const badge = document.getElementById('planner-count-badge');
+            const mobBadge = document.getElementById('mob-planner-badge');
+            if (count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+                mobBadge.innerText = count;
+                mobBadge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                mobBadge.classList.add('hidden');
+            }
+
+            document.getElementById('planner-count-label').innerText = count;
+            document.getElementById('summary-total-modules').innerText = count;
+
+            // Render Phased Basket
+            const container = document.getElementById('planner-phased-basket');
+            
+            if (count === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-xl text-slate-400">
+                        <i data-lucide="shopping-bag" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                        <p class="text-xs font-medium">Noch keine Module für diesen Hilfefall ausgewählt.</p>
+                        <p class="text-[11px] mt-1">Wählen Sie im Katalog oder den Clustern passende Module aus.</p>
+                    </div>
+                `;
+            } else {
+                let html = '';
+                
+                PHASES.forEach(phase => {
+                    const phaseSelectedModules = MODULES.filter(m => m.phaseId === phase.id && plannerBasket.includes(m.id));
+                    
+                    if (phaseSelectedModules.length > 0) {
+                        html += `
+                            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
+                                <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-800">${phase.name}</span>
+                                    <span class="text-[10px] font-semibold bg-white text-slate-600 px-2 py-0.5 rounded border">${phaseSelectedModules.length} Modul(e)</span>
+                                </div>
+                                <div class="p-3 space-y-2">
+                                    ${phaseSelectedModules.map(m => `
+                                        <div class="p-3 bg-white border border-slate-200 rounded-lg flex items-center justify-between gap-3 shadow-2xs">
+                                            <div>
+                                                <div class="font-bold text-xs text-slate-900">${m.title} <span class="text-slate-400 font-normal">(${m.id})</span></div>
+                                                <div class="text-[11px] text-slate-500 mt-0.5">${m.duration} • <span class="font-medium text-slate-700">${m.qual}</span></div>
+                                            </div>
+                                            <button onclick="togglePlannerItem('${m.id}')" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-50 transition" title="Modul abwählen">
+                                                <i data-lucide="x" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                container.innerHTML = html;
+            }
+
+            // Calculations
+            updatePlannerSummary();
+            lucide.createIcons();
+        }
+
+        function updatePlannerSummary() {
+            const selectedModules = MODULES.filter(m => plannerBasket.includes(m.id));
+
+            // Qualifications
+            const qualContainer = document.getElementById('summary-qual-list');
+            const quals = [...new Set(selectedModules.map(m => m.qual))];
+
+            if (quals.length === 0) {
+                qualContainer.innerHTML = `<span class="text-xs text-slate-500 italic">Keine Module ausgewählt</span>`;
+            } else {
+                qualContainer.innerHTML = quals.map(q => `
+                    <span class="text-[10px] font-semibold bg-slate-800 text-brand-300 px-2 py-1 rounded border border-slate-700">
+                        ${q}
+                    </span>
+                `).join('');
+            }
+
+            // Phase Coverage
+            const coverageContainer = document.getElementById('phase-coverage-bars');
+            coverageContainer.innerHTML = PHASES.map(phase => {
+                const countInPhase = selectedModules.filter(m => m.phaseId === phase.id).length;
+                const totalInPhase = MODULES.filter(m => m.phaseId === phase.id).length;
+                const percent = Math.min((countInPhase / totalInPhase) * 100, 100);
+
+                return `
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-600 font-medium mb-1">
+                            <span>${phase.code}</span>
+                            <span>${countInPhase} von ${totalInPhase} Modulen</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full transition-all duration-300" style="width: ${percent}%; background-color: ${phase.color}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Export PDF
+        function exportPlannerPDF() {
+            if (plannerBasket.length === 0) {
+                alert("Bitte wählen Sie zuerst mindestens ein Modul im Hilfeplaner aus.");
+                return;
+            }
+
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('de-DE');
+            document.getElementById('print-case-id').innerText = document.getElementById('case-id').value || "Nicht angegeben";
+            document.getElementById('print-case-auth').innerText = document.getElementById('case-authority').value || "Nicht angegeben";
+            document.getElementById('print-case-worker').innerText = document.getElementById('case-worker').value || "Nicht angegeben";
+            document.getElementById('print-case-start').innerText = document.getElementById('case-start').value || "Sofort";
+            document.getElementById('print-notes-text').innerText = document.getElementById('case-notes').value || "Keine gesonderten Anmerkungen hinterlegt.";
+
+            const printContainer = document.getElementById('print-modules-phased');
+            let printHtml = '';
+
+            PHASES.forEach(phase => {
+                const phaseSelectedModules = MODULES.filter(m => m.phaseId === phase.id && plannerBasket.includes(m.id));
+                
+                if (phaseSelectedModules.length > 0) {
+                    printHtml += `
+                        <div class="border text-xs rounded p-3">
+                            <div class="font-bold border-b pb-1 mb-2 text-slate-900">${phase.name}</div>
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 text-[10px]">
+                                        <th class="p-1 border">Modul</th>
+                                        <th class="p-1 border">Dauer</th>
+                                        <th class="p-1 border">Qualifikation</th>
+                                        <th class="p-1 border">Hauptziel</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${phaseSelectedModules.map(m => `
+                                        <tr>
+                                            <td class="p-1 border font-bold">${m.title} (${m.id})</td>
+                                            <td class="p-1 border">${m.duration}</td>
+                                            <td class="p-1 border">${m.qual}</td>
+                                            <td class="p-1 border">${m.goal}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            });
+
+            printContainer.innerHTML = printHtml;
+            window.print();
+        }
+
+        function openQuickInfo() {
+            document.getElementById('info-modal').classList.remove('hidden');
+        }
+        function closeQuickInfo() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
