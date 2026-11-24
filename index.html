@@ -31,7 +31,142 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
+        /* Footer Styling */
+.app-footer {
+  margin-top: 3rem;
+  padding: 1.25rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2563eb;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-link-btn:hover {
+  color: #1d4ed8;
+}
+
+.footer-sep {
+  color: #cbd5e1;
+}
+
+/* Modal Styling */
+.legal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 9999;
+}
+
+.legal-modal-backdrop[hidden] {
+  display: none;
+}
+
+.legal-modal-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  max-width: 680px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+.legal-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legal-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+.legal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.legal-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  line-height: 1.6;
+  color: #334155;
+  font-size: 0.925rem;
+}
+
+.legal-modal-body h3 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.legal-modal-body h3:first-child {
+  margin-top: 0;
+}
+
+.legal-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Beim Drucken / PDF-Export ausblenden */
+@media print {
+  .app-footer,
+  .legal-modal-backdrop {
+    display: none !important;
+  }
+}
+
+/* Falls auf Mobile unten eine fixe Navigationsleiste liegt, Platz schaffen */
+@media (max-width: 768px) {
+  .app-footer {
+    padding-bottom: 5rem;
+  }
+}
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -1239,6 +1374,125 @@
         function closeQuickInfo() {
             document.getElementById('info-modal').classList.add('hidden');
         }
+
+        // --- NEU: Rechtliche Hinweise (Impressum, Datenschutz, Barrierefreiheit) ---
+    const legalContents = {
+      impressum: {
+        title: "Impressum (Angaben gemäß § 5 DDG)",
+        html: `
+          <h3>Verantwortlich für den Inhalt</h3>
+          <p>
+            [Name der Institution / des Trägers / der Privatperson]<br>
+            [Vertretungsberechtigte Person / Amtsleitung]<br>
+            [Straße und Hausnummer]<br>
+            [PLZ Ort]
+          </p>
+          <h3>Kontakt</h3>
+          <p>
+            Telefon: [Telefonnummer]<br>
+            E-Mail: [E-Mail-Adresse]
+          </p>
+          <h3>Haftungshinweis & Fachlicher Zweck</h3>
+          <p>
+            Diese Webanwendung dient als fachliches Arbeits- und Planungsinstrument für ambulante Hilfen zur Erziehung nach §§ 27 ff. SGB VIII. Alle Inhalte wurden mit größter Sorgfalt erstellt, ersetzen jedoch nicht die Einzelfallprüfung im Rahmen des Hilfeplanverfahrens (§ 36 SGB VIII).
+          </p>
+        `
+      },
+      datenschutz: {
+        title: "Datenschutzerklärung (DSGVO)",
+        html: `
+          <h3>1. Grundsatz: Lokale Datenverarbeitung (Client-Side)</h3>
+          <p>
+            Diese Anwendung arbeitet vollständig lokal in Ihrem Webbrowser. Sämtliche Eingaben im Hilfeprozess-Planer (z. B. Fall-Chiffre, Aktenzeichen, Zielstellungen oder ausgewählte Module) werden <strong>nicht</strong> an einen Server übertragen, dort gespeichert oder ausgewertet. Beim Schließen oder Neuladen der Seite werden die Eingaben verworfen.
+          </p>
+          <p>
+            <em>Hinweis zum Sozialdatenschutz (§ 35 SGB I, §§ 67 ff. SGB X):</em> Bitte verwenden Sie im Feld „Fall-Chiffre / Aktenzeichen“ ausschließlich pseudonymisierte Kürzel und keine Klarnamen von Leistungsberechtigten.
+          </p>
+          <h3>2. Hosting über GitHub Pages</h3>
+          <p>
+            Diese Website wird über <strong>GitHub Pages</strong> (GitHub Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA) bereitgestellt. Beim Aufruf der Seite erfasst der Hosting-Anbieter aus technischen Gründen Server-Logfiles (insbesondere Ihre IP-Adresse, Zeitpunkt des Zugriffs, Browsertyp), um die Auslieferung und Sicherheit der Website zu gewährleisten (Art. 6 Abs. 1 lit. f DSGVO).
+          </p>
+          <h3>3. Cookies & Tracking</h3>
+          <p>
+            Diese Anwendung verwendet keine Tracking-Tools, keine Analyse-Dienste und setzt keine Marketing-Cookies ein.
+          </p>
+          <h3>4. Ihre Rechte</h3>
+          <p>
+            Ihnen stehen gemäß DSGVO die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung sowie Beschwerde bei der zuständigen Datenschutzaufsichtsbehörde zu. Verantwortliche Stelle ist die im Impressum genannte Einrichtung.
+          </p>
+        `
+      },
+      barrierefreiheit: {
+        title: "Erklärung zur Barrierefreiheit",
+        html: `
+          <h3>Stand der Vereinbarkeit mit den Anforderungen</h3>
+          <p>
+            Wir sind bemüht, diese Webanwendung im Einklang mit den Bestimmungen des Behindertengleichstellungsgesetzes (BGG) sowie der Barrierefreie-Informationstechnik-Verordnung (BITV 2.0) barrierefrei zugänglich zu machen.
+          </p>
+          <h3>Barrieren melden / Kontakt</h3>
+          <p>
+            Sollten Ihnen Mängel bei der barrierefreien Gestaltung auffallen oder benötigen Sie Inhalte in einer alternativen Form, wenden Sie sich bitte an die im Impressum genannte Kontaktadresse.
+          </p>
+        `
+      }
+    };
+
+    window.openLegalModal = function(type) {
+      const modal = document.getElementById('legalModal');
+      const titleEl = document.getElementById('legalModalTitle');
+      const bodyEl = document.getElementById('legalModalBody');
+      const data = legalContents[type];
+
+      if (!data || !modal || !titleEl || !bodyEl) return;
+
+      titleEl.textContent = data.title;
+      bodyEl.innerHTML = data.html;
+      modal.hidden = false;
+    };
+
+    window.closeLegalModal = function() {
+      const modal = document.getElementById('legalModal');
+      if (modal) modal.hidden = true;
+    };
+
+    document.getElementById('legalModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'legalModal') window.closeLegalModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !document.getElementById('legalModal')?.hidden) {
+        window.closeLegalModal();
+      }
+    });
     </script>
+    <!-- Rechtlicher Footer (wird beim Drucken/PDF-Export ausgeblendet) -->
+<footer class="app-footer no-print">
+  <div class="footer-content">
+    <span class="footer-copy">© 2026 Ambulanter Hilfeplan-Baukasten (§ 27 ff. SGB VIII)</span>
+    <nav class="footer-links" aria-label="Rechtliche Hinweise">
+      <button type="button" class="footer-link-btn" onclick="openLegalModal('impressum')">Impressum</button>
+      <span class="footer-sep">|</span>
+      <button type="button" class="footer-link-btn" onclick="openLegalModal('datenschutz')">Datenschutz</button>
+      <span class="footer-sep">|</span>
+      <button type="button" class="footer-link-btn" onclick="openLegalModal('barrierefreiheit')">Barrierefreiheit</button>
+    </nav>
+  </div>
+</footer>
+
+<!-- Modal für Impressum, Datenschutz & Barrierefreiheit -->
+<div id="legalModal" class="legal-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle" hidden>
+  <div class="legal-modal-card">
+    <div class="legal-modal-header">
+      <h2 id="legalModalTitle">Rechtliche Hinweise</h2>
+      <button type="button" class="legal-close-btn" onclick="closeLegalModal()" aria-label="Schließen">&times;</button>
+    </div>
+    <div id="legalModalBody" class="legal-modal-body">
+      <!-- Inhalt wird dynamisch per JS eingefügt -->
+    </div>
+    <div class="legal-modal-footer">
+      <button type="button" class="btn-primary" onclick="closeLegalModal()">Schließen</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
